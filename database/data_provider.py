@@ -22,7 +22,7 @@ class PlayersDataProvider:
         self.df = pd.DataFrame(columns=self.columns)
 
     # set url for webscraping
-    def set_df(self, url: str):
+    def set_url(self, url: str):
         self.url: str = url
 
     def web_scrap(self, offset_limit: int):
