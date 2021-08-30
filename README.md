@@ -1,1 +1,1 @@
-# Euro soccer data base.
+# Web scrap FIFA data
