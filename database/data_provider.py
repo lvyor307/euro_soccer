@@ -3,6 +3,9 @@ import pandas as pd
 import re
 import requests
 from bs4 import BeautifulSoup as Soup
+from sqlalchemy import create_engine
+
+
 
 class PlayersDataProvider:
     def __init__(self):
@@ -53,6 +56,11 @@ class PlayersDataProvider:
     def drop_duplicates(self):
         self.df = self.df.iloc[self.df.astype(str).drop_duplicates().index]
 
+    
+    def push_to_db(self, database_uri: str, table_name: str):
+        # Scheme: "postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>"
+        engine = create_engine(database_uri)
+        self.df.to_sql(name=table_name, con=engine, if_exists='replace')
 
 
 class ClubsDataProvider:
@@ -93,3 +101,9 @@ class ClubsDataProvider:
     
     def drop_duplicates(self):
         self.df = self.df.iloc[self.df.astype(str).drop_duplicates().index]
+
+    
+    def push_to_db(self, database_uri: str, table_name: str):
+        # Scheme: "postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>"
+        engine = create_engine(database_uri)
+        self.df.to_sql(name=table_name, con=engine, if_exists='replace')
