@@ -4,22 +4,18 @@ import re
 import requests
 from bs4 import BeautifulSoup as Soup
 
-
 class PlayersDataProvider:
     def __init__(self):
         self.url: str = 'https://sofifa.com/players?offset='
         self.columns = ['ID', 'picture', 'Flag', 'Name', 'Age', 'Position',
                         'Overall', 'Potential', 'Team_Image', 'Team',
                         'Value', 'Wage', 'Total_Point']
-        self.df: pd.DataFrame = None
+        self.df: pd.DataFrame = pd.DataFrame(columns=self.columns)
 
     # set df columns names
     def set_df_col(self, cols):
         self.columns = cols
 
-    # set df
-    def set_df(self):
-        self.df = pd.DataFrame(columns=self.columns)
 
     # set url for webscraping
     def set_url(self, url: str):
@@ -27,8 +23,8 @@ class PlayersDataProvider:
 
     def web_scrap(self, offset_limit: int):
         for offset in range(0, offset_limit):
-            url = url + str(offset*61)
-            p_html = requests.get(self.url)
+            url = self.url + str(offset*60)
+            p_html = requests.get(url)
             p_soup = p_html.text
             data = Soup(p_soup, 'html.parser')
             table = data.find('tbody')
@@ -52,4 +48,48 @@ class PlayersDataProvider:
 
                 player_data.columns = self.columns
                 self.df = self.df.append(player_data, ignore_index=True)
+    
+
+    def drop_duplicates(self):
+        self.df = self.df.iloc[self.df.astype(str).drop_duplicates().index]
+
+
+
+class ClubsDataProvider:
+    def __init__(self):
+        self.url: str = 'https://sofifa.com/teams?type=club&offset='
+        self.columns = ['Team', 'Logo', 'OVA', 'ATT','MID',
+                        'DEF', 'TRANSFER BUDGET', 'PLAYERS']
+        self.df: pd.DataFrame = pd.DataFrame(columns=self.columns)
+
+    # set df columns names
+    def set_df_col(self, cols):
+        self.columns = cols
+
+    # set url for webscraping
+    def set_url(self, url: str):
+        self.url: str = url
+
+    def web_scrap(self, offset_limit: int):
+        for offset in range(0, offset_limit):
+            url = self.url + str(offset*60)
+            p_html = requests.get(url)
+            p_soup = p_html.text
+            data = Soup(p_soup, 'html.parser')
+            table = data.find('tbody')
+            for i in table.findAll('tr'):
+                td = i.findAll('td')
+                picture = td[0].find('img').get('data-src')
+                Team = td[1].findAll('a')[0].text
+                OVA = td[2].find('span').text
+                ATT = td[3].find('span').text
+                MID = td[4].find('span').text
+                DEF = td[5].find('span').text
+                TRANSFER_BUDGET = td[6].text
+                PLAYERS = td[7].text
+                teams_data = pd.DataFrame([[Team, picture, OVA, ATT, MID, DEF, TRANSFER_BUDGET, PLAYERS]])
+                teams_data.columns = self.columns
+                self.df = self.df.append(teams_data, ignore_index=True)
+    
+    def drop_duplicates(self):
         self.df = self.df.iloc[self.df.astype(str).drop_duplicates().index]
